@@ -24,5 +24,5 @@ jobs:
       env:
         IMAGE_TAG: ${{ steps.date.outputs.date }}-action # 用于标记容器版本号
       run: |
-        docker build -t registry.cn-hangzhou.aliyuncs.com/joybo/ant-media-server:$IMAGE_TAG .
-        docker push registry.cn-hangzhou.aliyuncs.com/joybo/ant-media-server:$IMAGE_TAG
+        docker build -t registry.cn-hangzhou.aliyuncs.com/joybo/$(echo $GITHUB_REPOSITORY | cut -d'/' -f2):$IMAGE_TAG .
+        docker push registry.cn-hangzhou.aliyuncs.com/joybo/$(echo $GITHUB_REPOSITORY | cut -d'/' -f2):$IMAGE_TAG
