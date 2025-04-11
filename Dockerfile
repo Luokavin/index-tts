@@ -3,7 +3,7 @@ FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-devel
 WORKDIR /app/index-tts
 ENV TZ=Asia/Shanghai
 
-RUN apt update && apt install -y wget net-tools tree curl && wget https://github.com/index-tts/index-tts/blob/main/requirements.txt
+RUN apt update && apt install -y wget net-tools tree curl && wget https://github.com/index-tts/index-tts/raw/refs/heads/main/requirements.txt
 RUN  pip install -r requirements.txt && pip install deepspeed
 
 RUN apt update && apt install -y ffmpeg gcc g++ cmake
