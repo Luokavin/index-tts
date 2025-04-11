@@ -1,4 +1,4 @@
-name: ant-media-server build docker
+name: actions
 
 on: [push, pull_request] # 触发事件
 
@@ -17,7 +17,7 @@ jobs:
         password: "${{ secrets.REGISTRY_PASSWORD }}" # 引用GitHub repo设置的镜像容器服务密码
     - name: Build and Push Docker Image
       env:
-        IMAGE_TAG: $(date +%Y-%m-%d) # 用于标记容器版本号
+        IMAGE_TAG: ${{ $(date +%Y-%m-%d)-action }} # 用于标记容器版本号
       run: |
         docker build -t registry.cn-hangzhou.aliyuncs.com/jiangrj/ant-media-server:$IMAGE_TAG .
         docker push registry.cn-hangzhou.aliyuncs.com/jiangrj/ant-media-server:$IMAGE_TAG
