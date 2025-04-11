@@ -1,23 +1,20 @@
-# 基础镜像
-FROM ubuntu:22.04
-# 防止安装依赖的时候要求确认配置
-ENV DEBIAN_FRONTEND=noninteractive
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
+
+WORKDIR /app/index-tts
 ENV TZ=Asia/Shanghai
-RUN apt update && apt install -y apt-utils && apt install -y wget tree net-tools iputils-ping python3 python3-pip
 
-# ant-media-server 安装
-WORKDIR /app
-RUN wget -O ams_community.zip https://github.com/ant-media/Ant-Media-Server/releases/download/ams-v2.13.2/ant-media-server-community-2.13.2.zip
-RUN wget -O install_ant-media-server.sh https://raw.githubusercontent.com/ant-media/Scripts/master/install_ant-media-server.sh && chmod +x install_ant-media-server.sh
-RUN ./install_ant-media-server.sh ams_community.zip && rm -rf ams_community.zip
+COPY requirements.txt ./
+COPY sources.list /etc/apt/sources.list
 
-# 替换为国内源
-RUN mkdir -p /app/ && rm -rf /etc/apt/sources.list && rm -rf /etc/apt/sources.list.d/*ubuntu*
-COPY ./sources-22.04.list /etc/apt/sources.list
-RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple && pip install -r requirements.txt && pip install deepspeed
 
-# 定义端口
-EXPOSE 80 5080 5443 4200 1935 50000-60000 5000
+RUN apt update && apt install -y ffmpeg gcc g++ cmake
 
-RUN touch /var/log/antmedia/ant-media-server.log
-CMD service antmedia start && tail -f /var/log/antmedia/ant-media-server.log
+RUN pip install -U triton --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/Triton-Nightly/pypi/simple/triton-nightly
+
+ENV CUDA_HOME=/usr/local/cuda-12.4
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+RUN mkdir -p /app/index-tts && rm -rf /etc/apt/sources.list && rm -rf /etc/apt/sources.list.d/*ubuntu*
+
+ENTRYPOINT ["python", "webui.py"]
