@@ -3,7 +3,7 @@ name: actions
 on: [push, pull_request] # 触发事件
 
 jobs:
-  bt-product-release:
+  Docker-Build-Release:
     if: ${{ github.ref == 'refs/heads/main' }}  # 检测main分支是否有更新
     runs-on: ubuntu-latest
     steps:
