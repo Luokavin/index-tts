@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # 防止安装依赖的时候要求确认配置
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
-RUN apt update && apt install -y apt-utils && apt install -y wget tree net-tools iputils-ping python3
+RUN apt update && apt install -y apt-utils && apt install -y wget tree net-tools iputils-ping python3 python3-pip
 
 # ant-media-server 安装
 WORKDIR /app
