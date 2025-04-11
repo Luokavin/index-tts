@@ -1,6 +1,8 @@
 name: actions
 
-on: [push, pull_request] # 触发事件
+on:
+  push:
+    paths: ['Dockerfile']
 
 jobs:
   Docker-Build-Release:
