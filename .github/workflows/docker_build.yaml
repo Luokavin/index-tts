@@ -3,6 +3,18 @@ name: actions
 on:
   push:
     paths: ['Dockerfile']
+  workflow_dispatch:
+    inputs:
+      env:
+        description: '手动触发'
+        default: 'prod'
+        
+# 只需要修改这里的变量就可以，如非必要，jobs下的参数不要动
+env:
+  own: joybo # 需要修改为你的阿里云命名空间
+  repo: $(echo $GITHUB_REPOSITORY | cut -d'/' -f2) # 获取当前仓库的名称，阿里云需要创建同名仓库
+  server: registry.cn-hangzhou.aliyuncs.com # 你的阿里云服务器地址（不同区域的地址不一样）
+  server-id: cn-hangzhou # 服务器ID，看上面就可以
 
 jobs:
   Docker-Build-Release:
@@ -16,13 +28,13 @@ jobs:
     - name: 登录阿里云仓库
       uses: aliyun/acr-login@v1 # 使用阿里云镜像服务action
       with:
-        login-server: registry.cn-hangzhou.aliyuncs.com # 务必正确填写镜像容器服务的登录地址
-        region-id: cn-hangzhou # 务必正确填写镜像容器服务的登录地址
+        login-server: ${{ env.server}} # 务必正确填写镜像容器服务的登录地址
+        region-id: ${{ env.server-id }} # 务必正确填写镜像容器服务的登录地址
         username: "${{ secrets.REGISTRY_USERNAME }}" # 引用GitHub repo设置的镜像容器服务用户名
         password: "${{ secrets.REGISTRY_PASSWORD }}" # 引用GitHub repo设置的镜像容器服务密码
     - name: 构建和上传Docker镜像
       env:
         IMAGE_TAG: ${{ steps.date.outputs.date }}-action # 用于标记容器版本号
       run: |
-        docker build -t registry.cn-hangzhou.aliyuncs.com/joybo/$(echo $GITHUB_REPOSITORY | cut -d'/' -f2):$IMAGE_TAG .
-        docker push registry.cn-hangzhou.aliyuncs.com/joybo/$(echo $GITHUB_REPOSITORY | cut -d'/' -f2):$IMAGE_TAG
+        docker build -t ${{ env.server }}/${{ env.own }}/${{ env.repo }}:$IMAGE_TAG .
+        docker push  ${{ env.server }}/${{ env.own }}/${{ env.repo }}:$IMAGE_TAG
