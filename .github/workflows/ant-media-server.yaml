@@ -7,6 +7,9 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' }}  # 检测main分支是否有更新
     runs-on: ubuntu-latest
     steps:
+    - name: Capture Date
+      id: date
+      run: echo "::set-output name=date::$(date +%Y-%m-%d)"
     - uses: actions/checkout@v2 # pull代码到运行服务器上
     - name: Login to Aliyun Container Registry (ACR)
       uses: aliyun/acr-login@v1 # 使用阿里云镜像服务action
@@ -17,7 +20,7 @@ jobs:
         password: "${{ secrets.REGISTRY_PASSWORD }}" # 引用GitHub repo设置的镜像容器服务密码
     - name: Build and Push Docker Image
       env:
-        IMAGE_TAG: ${{ $(date +%Y-%m-%d)-action }} # 用于标记容器版本号
+        IMAGE_TAG: ${{ steps.date.outputs.date }}-action # 用于标记容器版本号
       run: |
         docker build -t registry.cn-hangzhou.aliyuncs.com/jiangrj/ant-media-server:$IMAGE_TAG .
         docker push registry.cn-hangzhou.aliyuncs.com/jiangrj/ant-media-server:$IMAGE_TAG
