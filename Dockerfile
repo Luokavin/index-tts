@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
+FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-devel
 
 WORKDIR /app/index-tts
 ENV TZ=Asia/Shanghai
@@ -16,7 +16,7 @@ ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 # 设置国内源
 RUN mkdir -p /app/index-tts && rm -rf /etc/apt/sources.list && rm -rf /etc/apt/sources.list.d/*ubuntu*
-COPY sources.list /etc/apt/sources.list
+COPY sources-22.04.list /etc/apt/sources.list
 RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 ENTRYPOINT ["python", "webui.py"]
