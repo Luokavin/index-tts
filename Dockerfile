@@ -2,7 +2,6 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir -p /app/ && rm -rf /etc/apt/sources.list && rm -rf /etc/apt/sources.list.d/*ubuntu*
 COPY ./sources-22.04.list /etc/apt/sources.list
-RUN cat /etc/apt/sources.list
 RUN apt update && apt install -y apt-utils && apt install -y wget tree net-tools iputils-ping
 WORKDIR /app
 RUN wget -O ams_community.zip https://ghproxy.net/https://github.com/ant-media/Ant-Media-Server/releases/download/ams-v2.13.2/ant-media-server-community-2.13.2.zip
