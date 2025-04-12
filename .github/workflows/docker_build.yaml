@@ -15,6 +15,7 @@ env:
   repo: $(echo $GITHUB_REPOSITORY | cut -d'/' -f2) # 获取当前仓库的名称，阿里云需要创建同名仓库
   server: registry.cn-hangzhou.aliyuncs.com # 你的阿里云服务器地址（不同区域的地址不一样）
   server-id: cn-hangzhou # 服务器ID，看上面就可以
+  TZ: Asia/Shanghai
 
 jobs:
   Docker-Build-Release:
