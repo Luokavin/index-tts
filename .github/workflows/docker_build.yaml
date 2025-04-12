@@ -38,3 +38,5 @@ jobs:
       run: |
         docker build -t ${{ env.server }}/${{ env.own }}/${{ env.repo }}:$IMAGE_TAG .
         docker push  ${{ env.server }}/${{ env.own }}/${{ env.repo }}:$IMAGE_TAG
+    - name: Docker Pull 命令
+      run: echo "docker pull ${{ env.server }}/${{ env.own }}/${{ env.repo }}:$IMAGE_TAG"
