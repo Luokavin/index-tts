@@ -3,14 +3,12 @@ FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-devel
 WORKDIR /app/index-tts
 ENV TZ=Asia/Shanghai
 
-RUN apt update && apt install -y wget net-tools tree curl && wget https://github.com/index-tts/index-tts/raw/refs/heads/main/requirements.txt && apt clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y wget net-tools tree curl ffmpeg gcc g++ cmake && wget https://github.com/index-tts/index-tts/raw/refs/heads/main/requirements.txt && apt clean && rm -rf /var/lib/apt/lists/*
 RUN  pip install -r requirements.txt && pip install deepspeed && rm -rf ~/.cache/pip/*
-
-RUN apt update && apt install -y ffmpeg gcc g++ cmake && apt clean && rm -rf /var/lib/apt/lists/*
 
 RUN pip install -U triton --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/Triton-Nightly/pypi/simple/triton-nightly && rm -rf ~/.cache/pip/*
 
-ENV CUDA_HOME=/usr/local/cuda-12.4
+ENV CUDA_HOME=/usr/local/cuda-12.6
 ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
