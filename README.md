@@ -11,7 +11,7 @@ cd index-tts
 huggingface-cli download IndexTeam/Index-TTS --local-dir ./checkpoints
 modelscope download --model IndexTeam/Index-TTS --local-dir ./checkpoints # 可选，使用魔塔社区下载
 ```
-将 Spark-TTS 映射至 Docker 中的 /app/index-tts 即可，默认端口：7860
+将 Index-TTS 映射至 Docker 中的 /app/index-tts 即可，默认端口：7860
 # 更多用法
 [https://github.com/index-tts/index-tts](https://github.com/index-tts/index-tts)
 # Star History
