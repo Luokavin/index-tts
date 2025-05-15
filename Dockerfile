@@ -21,7 +21,7 @@ ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 # 下载模型
-RUN pip install huggingface-cli && rm -rf ~/.cache/pip/*
+RUN pip install -U "huggingface_hub[cli]" && rm -rf ~/.cache/pip/*
 RUN huggingface-cli download IndexTeam/Index-TTS --local-dir ./checkpoints
 
 # 指定默认可执行文件
