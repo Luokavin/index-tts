@@ -11,7 +11,7 @@ ENV TZ=Asia/Shanghai
 RUN apt update && apt install -y ffmpeg && apt clean && rm -rf /var/lib/apt/lists/*
 
 # 复制项目文件
-COPY . /app/index-tts/
+COPY index-tts/ /app/index-tts/
 
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt && pip install deepspeed && rm -rf ~/.cache/pip/*
