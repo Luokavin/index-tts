@@ -33,6 +33,9 @@ RUN huggingface-cli download IndexTeam/IndexTTS-1.5 \
 # 安装webui
 RUN pip install -e ".[webui]"
 
+# 预加载模型
+RUN python webui.py --preload-only
+
 # 设置端口
 EXPOSE 7860
 
