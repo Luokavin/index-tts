@@ -109,22 +109,18 @@ class IndexTTS:
             )
 
         if self.use_cuda_kernel:
-            # 直接加载预编译好的CUDA算子
+            # preload the CUDA kernel for BigVGAN
             try:
-                import sys
+                from indextts.BigVGAN.alias_free_activation.cuda import load
 
-                # 指定预编译算子的路径
-                cuda_ext_path = os.path.join(
-                    os.path.dirname(__file__),
-                    "BigVGAN/alias_free_activation/cuda/build",
-                )
-                sys.path.append(cuda_ext_path)
-                import anti_alias_activation_cuda
-
-                print(">> Loaded pre-compiled CUDA kernel for BigVGAN")
-            except Exception as e:
+                anti_alias_activation_cuda = load.load()
                 print(
-                    f">> Failed to load pre-compiled CUDA kernel: {e}. Falling back to torch."
+                    ">> Preload custom CUDA kernel for BigVGAN",
+                    anti_alias_activation_cuda,
+                )
+            except:
+                print(
+                    ">> Failed to load custom CUDA kernel for BigVGAN. Falling back to torch."
                 )
                 self.use_cuda_kernel = False
         self.bigvgan = Generator(self.cfg.bigvgan, use_cuda_kernel=self.use_cuda_kernel)
