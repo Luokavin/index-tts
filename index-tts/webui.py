@@ -12,7 +12,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # 解析命令行参数
 parser = argparse.ArgumentParser(description="IndexTTS WebUI")
-parser.add_argument("--preload-only",action="store_true", help="仅预加载模型，不启动 WebUI")
+parser.add_argument(
+    "--preload-only", action="store_true", help="仅预加载模型，不启动 WebUI"
+)
 args = parser.parse_args()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))

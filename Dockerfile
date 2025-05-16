@@ -8,13 +8,10 @@ WORKDIR /app/index-tts
 ENV TZ=Asia/Shanghai
 
 # 安装基础依赖
-RUN apt update && apt install -y git ffmpeg && apt clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y ffmpeg && apt clean && rm -rf /var/lib/apt/lists/*
 
-# 克隆项目
-RUN git clone https://github.com/index-tts/index-tts.git .
-
-# 复制自定义 webui.py 文件
-COPY webui.py /app/index-tts/webui.py
+# 复制项目文件
+COPY . /app/index-tts/
 
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt && pip install deepspeed && rm -rf ~/.cache/pip/*
@@ -40,4 +37,4 @@ RUN python webui.py --preload-only
 EXPOSE 7860
 
 # 指定默认可执行文件
-CMD ["python", "webui.py"]
+CMD ["python", "api.py"]
