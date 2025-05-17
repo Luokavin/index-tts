@@ -4,6 +4,8 @@
 import os
 import pathlib
 import subprocess
+import importlib.util
+import sys
 
 from torch.utils import cpp_extension
 
@@ -46,17 +48,35 @@ def chinese_path_compile_support(sources, buildpath):
 
 
 def load():
+    # Build path
+    srcpath = pathlib.Path(__file__).parent.absolute()
+    buildpath = srcpath / "build"
+    
+    # 检查是否存在预编译好的算子
+    so_file = buildpath / "anti_alias_activation_cuda.so"
+    if so_file.exists():
+        try:
+            print(f"检测到预编译CUDA算子: {so_file}")
+            # 直接从预编译文件加载模块
+            spec = importlib.util.spec_from_file_location("anti_alias_activation_cuda", so_file)
+            if spec:
+                module = importlib.util.module_from_spec(spec)
+                sys.modules["anti_alias_activation_cuda"] = module
+                spec.loader.exec_module(module)
+                print("成功加载预编译CUDA算子")
+                return module
+        except Exception as e:
+            print(f"加载预编译CUDA算子失败: {str(e)}，将重新编译")
+    
+    # 如果没有预编译算子或加载失败，则编译
+    _create_build_dir(buildpath)
+    
     # Check if cuda 11 is installed for compute capability 8.0
     cc_flag = []
     _, bare_metal_major, _ = _get_cuda_bare_metal_version(cpp_extension.CUDA_HOME)
     if int(bare_metal_major) >= 11:
         cc_flag.append("-gencode")
         cc_flag.append("arch=compute_80,code=sm_80")
-
-    # Build path
-    srcpath = pathlib.Path(__file__).parent.absolute()
-    buildpath = srcpath / "build"
-    _create_build_dir(buildpath)
 
     # Helper function to build the kernels.
     def _cpp_extention_load_helper(name, sources, extra_cuda_flags):
