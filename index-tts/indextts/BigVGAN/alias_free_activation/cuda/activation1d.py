@@ -3,11 +3,37 @@
 
 import torch
 import torch.nn as nn
+import os
+import importlib.util
+import sys
+import pathlib
 # load fused CUDA kernel: this enables importing anti_alias_activation_cuda
 from indextts.BigVGAN.alias_free_activation.cuda import load
 from indextts.BigVGAN.alias_free_activation.torch.resample import DownSample1d, UpSample1d
 
-anti_alias_activation_cuda = load.load()
+# 先尝试直接加载预编译的算子
+try:
+    cuda_path = pathlib.Path(load.__file__).parent.absolute()
+    build_path = cuda_path / "build"
+    so_file = build_path / "anti_alias_activation_cuda.so"
+    
+    if so_file.exists():
+        print(f"直接加载预编译CUDA算子: {so_file}")
+        spec = importlib.util.spec_from_file_location("anti_alias_activation_cuda", so_file)
+        if spec:
+            anti_alias_activation_cuda = importlib.util.module_from_spec(spec)
+            sys.modules["anti_alias_activation_cuda"] = anti_alias_activation_cuda
+            spec.loader.exec_module(anti_alias_activation_cuda)
+            print("直接加载预编译CUDA算子成功")
+        else:
+            # 如果直接加载失败，再使用load.load()编译
+            anti_alias_activation_cuda = load.load()
+    else:
+        # 如果没有预编译算子，再使用load.load()编译
+        anti_alias_activation_cuda = load.load()
+except Exception as e:
+    print(f"直接加载预编译CUDA算子失败: {str(e)}，将使用常规方式加载")
+    anti_alias_activation_cuda = load.load()
 
 
 class FusedAntiAliasActivation(torch.autograd.Function):
