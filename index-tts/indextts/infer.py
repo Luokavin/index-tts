@@ -109,13 +109,17 @@ class IndexTTS:
             )
 
         if self.use_cuda_kernel:
-            # BigVGAN CUDA算子已通过alias_free_activation/cuda/activation1d.py预加载，不需要在此处触发编译
+            # BigVGAN CUDA算子已通过alias_free_activation/cuda/activation1d.py预加载
             try:
-                # 只需导入，不需要调用load.load()
-                from indextts.BigVGAN.alias_free_activation.cuda.activation1d import anti_alias_activation_cuda
-                print(">> Preload custom CUDA kernel for BigVGAN", anti_alias_activation_cuda)
-            except:
-                print(">> Failed to load custom CUDA kernel for BigVGAN. Falling back to torch.")
+                # 导入activation1d模块，查看USE_CUDA_KERNEL标志
+                from indextts.BigVGAN.alias_free_activation.cuda.activation1d import USE_CUDA_KERNEL
+                if USE_CUDA_KERNEL:
+                    print(">> Successfully loaded precompiled CUDA kernel for BigVGAN")
+                else:
+                    print(">> CUDA kernel not available, using PyTorch implementation")
+                    self.use_cuda_kernel = False
+            except Exception as e:
+                print(f">> CUDA操作加载失败: {str(e)}，使用PyTorch实现")
                 self.use_cuda_kernel = False
         self.bigvgan = Generator(self.cfg.bigvgan, use_cuda_kernel=self.use_cuda_kernel)
         self.bigvgan_path = os.path.join(self.model_dir, self.cfg.bigvgan_checkpoint)

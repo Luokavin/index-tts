@@ -54,6 +54,7 @@ def load():
     
     # 检查是否存在预编译好的算子
     so_file = buildpath / "anti_alias_activation_cuda.so"
+    print(f"正在查找预编译CUDA算子: {so_file} (完整路径)")
     if so_file.exists():
         try:
             print(f"检测到预编译CUDA算子: {so_file}")
@@ -65,59 +66,65 @@ def load():
                 spec.loader.exec_module(module)
                 print("成功加载预编译CUDA算子")
                 return module
+            else:
+                print(f"无法为预编译CUDA算子创建spec")
+                raise ImportError("预编译CUDA算子加载失败")
         except Exception as e:
-            print(f"加载预编译CUDA算子失败: {str(e)}，将重新编译")
+            print(f"加载预编译CUDA算子失败: {str(e)}")
+            raise ImportError(f"预编译CUDA算子加载失败: {str(e)}")
+    else:
+        print(f"预编译CUDA算子文件不存在: {so_file}")
+        # 列出build目录下所有文件
+        print(f"build目录内容: {list(buildpath.glob('*'))}")
+        raise ImportError("预编译CUDA算子文件不存在，请确保已预编译好算子文件")
     
-    # 如果没有预编译算子或加载失败，则编译
-    _create_build_dir(buildpath)
+    # 这部分代码不再执行 - 移除编译过程
+    # _create_build_dir(buildpath)
+    # cc_flag = []
+    # _, bare_metal_major, _ = _get_cuda_bare_metal_version(cpp_extension.CUDA_HOME)
+    # if int(bare_metal_major) >= 11:
+    #     cc_flag.append("-gencode")
+    #     cc_flag.append("arch=compute_80,code=sm_80")
+
+    # def _cpp_extention_load_helper(name, sources, extra_cuda_flags):
+    #     return cpp_extension.load(
+    #         name=name,
+    #         sources=sources,
+    #         build_directory=buildpath,
+    #         extra_cflags=[
+    #             "-O3",
+    #         ],
+    #         extra_cuda_cflags=[
+    #             "-O3",
+    #             "-gencode",
+    #             "arch=compute_70,code=sm_70",
+    #             "--use_fast_math",
+    #         ]
+    #         + extra_cuda_flags
+    #         + cc_flag,
+    #         verbose=True,
+    #     )
+
+    # extra_cuda_flags = [
+    #     "-U__CUDA_NO_HALF_OPERATORS__",
+    #     "-U__CUDA_NO_HALF_CONVERSIONS__",
+    #     "--expt-relaxed-constexpr",
+    #     "--expt-extended-lambda",
+    # ]
+
+    # sources = [
+    #     srcpath / "anti_alias_activation.cpp",
+    #     srcpath / "anti_alias_activation_cuda.cu",
+    # ]
     
-    # Check if cuda 11 is installed for compute capability 8.0
-    cc_flag = []
-    _, bare_metal_major, _ = _get_cuda_bare_metal_version(cpp_extension.CUDA_HOME)
-    if int(bare_metal_major) >= 11:
-        cc_flag.append("-gencode")
-        cc_flag.append("arch=compute_80,code=sm_80")
-
-    # Helper function to build the kernels.
-    def _cpp_extention_load_helper(name, sources, extra_cuda_flags):
-        return cpp_extension.load(
-            name=name,
-            sources=sources,
-            build_directory=buildpath,
-            extra_cflags=[
-                "-O3",
-            ],
-            extra_cuda_cflags=[
-                "-O3",
-                "-gencode",
-                "arch=compute_70,code=sm_70",
-                "--use_fast_math",
-            ]
-            + extra_cuda_flags
-            + cc_flag,
-            verbose=True,
-        )
-
-    extra_cuda_flags = [
-        "-U__CUDA_NO_HALF_OPERATORS__",
-        "-U__CUDA_NO_HALF_CONVERSIONS__",
-        "--expt-relaxed-constexpr",
-        "--expt-extended-lambda",
-    ]
-
-    sources = [
-        srcpath / "anti_alias_activation.cpp",
-        srcpath / "anti_alias_activation_cuda.cu",
-    ]
+    # # 兼容方案：ninja 特殊字符路径编译支持处理（比如中文路径）
+    # buildpath = chinese_path_compile_support(sources, buildpath)
     
-    # 兼容方案：ninja 特殊字符路径编译支持处理（比如中文路径）
-    buildpath = chinese_path_compile_support(sources, buildpath)
-    
-    anti_alias_activation_cuda = _cpp_extention_load_helper(
-        "anti_alias_activation_cuda", sources, extra_cuda_flags
-    )
+    # anti_alias_activation_cuda = _cpp_extention_load_helper(
+    #     "anti_alias_activation_cuda", sources, extra_cuda_flags
+    # )
 
-    return anti_alias_activation_cuda
+    # return anti_alias_activation_cuda
 
 
 def _get_cuda_bare_metal_version(cuda_dir):

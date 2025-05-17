@@ -8,32 +8,25 @@ import importlib.util
 import sys
 import pathlib
 # load fused CUDA kernel: this enables importing anti_alias_activation_cuda
-from indextts.BigVGAN.alias_free_activation.cuda import load
 from indextts.BigVGAN.alias_free_activation.torch.resample import DownSample1d, UpSample1d
 
 # 先尝试直接加载预编译的算子
 try:
+    from indextts.BigVGAN.alias_free_activation.cuda import load
     cuda_path = pathlib.Path(load.__file__).parent.absolute()
     build_path = cuda_path / "build"
     so_file = build_path / "anti_alias_activation_cuda.so"
     
-    if so_file.exists():
-        print(f"直接加载预编译CUDA算子: {so_file}")
-        spec = importlib.util.spec_from_file_location("anti_alias_activation_cuda", so_file)
-        if spec:
-            anti_alias_activation_cuda = importlib.util.module_from_spec(spec)
-            sys.modules["anti_alias_activation_cuda"] = anti_alias_activation_cuda
-            spec.loader.exec_module(anti_alias_activation_cuda)
-            print("直接加载预编译CUDA算子成功")
-        else:
-            # 如果直接加载失败，再使用load.load()编译
-            anti_alias_activation_cuda = load.load()
-    else:
-        # 如果没有预编译算子，再使用load.load()编译
-        anti_alias_activation_cuda = load.load()
-except Exception as e:
-    print(f"直接加载预编译CUDA算子失败: {str(e)}，将使用常规方式加载")
+    print(f"CUDA算子路径检查: {so_file} 存在={so_file.exists()}")
+    
+    # 尝试加载算子
     anti_alias_activation_cuda = load.load()
+    print("成功加载CUDA算子")
+    USE_CUDA_KERNEL = True
+except Exception as e:
+    print(f"加载CUDA算子失败: {str(e)}")
+    print("将使用PyTorch实现代替CUDA算子")
+    USE_CUDA_KERNEL = False
 
 
 class FusedAntiAliasActivation(torch.autograd.Function):
@@ -45,6 +38,9 @@ class FusedAntiAliasActivation(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, inputs, up_ftr, down_ftr, alpha, beta):
+        if not USE_CUDA_KERNEL:
+            raise RuntimeError("CUDA算子未加载，无法使用FusedAntiAliasActivation")
+        
         activation_results = anti_alias_activation_cuda.forward(
             inputs, up_ftr, down_ftr, alpha, beta
         )
@@ -74,7 +70,8 @@ class Activation1d(nn.Module):
         self.upsample = UpSample1d(up_ratio, up_kernel_size)
         self.downsample = DownSample1d(down_ratio, down_kernel_size)
 
-        self.fused = fused  # Whether to use fused CUDA kernel or not
+        # 如果CUDA算子加载失败，强制使用非融合模式
+        self.fused = fused and USE_CUDA_KERNEL
 
     def forward(self, x):
         if not self.fused:
